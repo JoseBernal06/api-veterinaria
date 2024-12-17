@@ -1,7 +1,7 @@
 
 import Veterinario from "../models/veterinario.js"
 import  { sendMailRecoveryPassword, sendMailToUser } from "../config/nodemailer.js"
-import generarJWT from "../helpers/crearJWT.js"
+import {generarJWT} from "../helpers/crearJWT.js"
 
 const register = async(req, res) => {
    
@@ -26,25 +26,18 @@ const register = async(req, res) => {
 
 
 const confirmarEmail = async(req, res) => {
-    
-    // tomar datos del request
-    const {token} = req.params
-    
-    // validar datos
-    if(!(token)) return res.status(400).json({msg:"Lo sentimos no se pudo validar la cuenta"})
-    
-    const veterinarioBDD=Veterinario.findOne({token})
-    if(!veterinarioBDD.token) return res.status(400).json({msg:"La cuenta ya ha sido confrimada"})
-
-    // interacturar BDD
-    veterinarioBDD.token=null
-    veterinarioBDD.confirmarEmail=true
+    if(!(req.params.token)) return res.status(400).json({msg:"Lo sentimos, no se puede validar la cuenta"})
+    const veterinarioBDD = await Veterinario.findOne({token:req.params.token})
+    if(!veterinarioBDD?.token) return res.status(404).json({msg:"La cuenta ya ha sido confirmada"})
+    veterinarioBDD.token = null
+    veterinarioBDD.confirmEmail=true
     await veterinarioBDD.save()
-    res.status(200).json({msg:"Token confirmado, ya puedes usar la cuenta"})
+    res.status(200).json({msg:"Token confirmado, ya puedes iniciar sesión"}) 
 }
 
 
 const login = async(req,res)=>{
+    // tomar datos del request
     const {email,password} = req.body
 
     // validar datos
@@ -54,19 +47,20 @@ const login = async(req,res)=>{
     if(!veterinarioBDD) return res.status(404).json({msg:"Lo sentimos, el usuario no se encuentra registrado"})
     const verificarPassword = await veterinarioBDD.matchPassword(password)
     if(!verificarPassword) return res.status(404).json({msg:"Lo sentimos, el password no es el correcto"})
+    
+    // interactuar con la BD
+    const {nombre, apellido, direccion, telefono, _id}=veterinarioBDD
     const tokenJWT=generarJWT(veterinarioBDD._id, "veterinario")
-    res.status(200).json(veterinarioBDD, tokenJWT)
-
-    //const {nombre,apellido,direccion,telefono,_id} = veterinarioBDD
-    /*res.status(200).json({
+    res.status(200).json({
         nombre,
         apellido,
         direccion,
         telefono,
         _id,
+        tokenJWT,
         email:veterinarioBDD.email
     })
-    */
+
 }
 
 const recuperarPassword = async (req, res) => {
@@ -123,12 +117,32 @@ const nuevoPassword = async (req, res) => {
 }
 
 
+const detallesVeterianrio = (req,res) => {
+    res.json({msg:"Perfil del veterinario"})
+}
+
+
+const actualizarVeterianrio = (req,res) => {
+    res.json({msg:"Actualizar perfil del veterinario"})
+}
+
+
+const actualizarpasswordVeterianrio = (req,res) => {
+    res.json({msg:"Actualizar el password del del veterinario"})
+}
+
+
+
+
 export {
     register,
     confirmarEmail,
     login,
     recuperarPassword,
     comprobarToken,
-    nuevoPassword
+    nuevoPassword,
+    detallesVeterianrio,
+    actualizarVeterianrio,
+    actualizarpasswordVeterianrio
 }
 
