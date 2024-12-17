@@ -21,3 +21,6 @@ router.get('/actualizarVeterinario', verificarAutenticacion, actualizarVeterianr
 router.get('/actualizarpassword', verificarAutenticacion, actualizarpasswordVeterianrio)
 
 export default router
+
+
+

@@ -26,7 +26,7 @@ const veterinarioSchema = new Schema({
         type:String,
         require:true,
         trim:true,
-				unique:true
+		unique:true
     },
     password:{
         type:String,
